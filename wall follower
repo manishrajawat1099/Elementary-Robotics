@@ -1,0 +1,86 @@
+// Motor Pins (L298N)
+#define ENA 9
+#define IN1 8
+#define IN2 7
+#define ENB 10
+#define IN3 6
+#define IN4 5
+
+// Ultrasonic Sensor Pins
+#define TRIG_RIGHT 2
+#define ECHO_RIGHT 3
+#define TRIG_FRONT 4
+#define ECHO_FRONT 11
+
+// Distance Thresholds (in cm)
+const int wallDistance = 20;
+const int frontThreshold = 15;
+
+void setup() {
+  // Motor pins
+  pinMode(ENA, OUTPUT); pinMode(IN1, OUTPUT); pinMode(IN2, OUTPUT);
+  pinMode(ENB, OUTPUT); pinMode(IN3, OUTPUT); pinMode(IN4, OUTPUT);
+
+  // Ultrasonic pins
+  pinMode(TRIG_RIGHT, OUTPUT); pinMode(ECHO_RIGHT, INPUT);
+  pinMode(TRIG_FRONT, OUTPUT); pinMode(ECHO_FRONT, INPUT);
+
+  Serial.begin(9600);
+}
+
+void loop() {
+  int rightDist = readUltrasonic(TRIG_RIGHT, ECHO_RIGHT);
+  int frontDist = readUltrasonic(TRIG_FRONT, ECHO_FRONT);
+
+  Serial.print("Right: "); Serial.print(rightDist);
+  Serial.print(" | Front: "); Serial.println(frontDist);
+
+  if (frontDist < frontThreshold) {
+    // Obstacle ahead → Turn Left
+    turnLeft();
+  } else {
+    if (rightDist > wallDistance + 5) {
+      // Too far from wall → Turn Right slightly
+      turnRightSlight();
+    } else if (rightDist < wallDistance - 5) {
+      // Too close to wall → Turn Left slightly
+      turnLeftSlight();
+    } else {
+      // At correct distance → Go Straight
+      moveForward();
+    }
+  }
+  delay(100);
+}
+
+// === Movement Functions ===
+void moveForward() {
+  analogWrite(ENA, 150); digitalWrite(IN1, HIGH); digitalWrite(IN2, LOW);
+  analogWrite(ENB, 150); digitalWrite(IN3, HIGH); digitalWrite(IN4, LOW);
+}
+
+void turnLeft() {
+  analogWrite(ENA, 150); digitalWrite(IN1, LOW); digitalWrite(IN2, HIGH);
+  analogWrite(ENB, 150); digitalWrite(IN3, HIGH); digitalWrite(IN4, LOW);
+}
+
+void turnRightSlight() {
+  analogWrite(ENA, 150); digitalWrite(IN1, HIGH); digitalWrite(IN2, LOW);
+  analogWrite(ENB, 120); digitalWrite(IN3, HIGH); digitalWrite(IN4, LOW);
+}
+
+void turnLeftSlight() {
+  analogWrite(ENA, 120); digitalWrite(IN1, HIGH); digitalWrite(IN2, LOW);
+  analogWrite(ENB, 150); digitalWrite(IN3, HIGH); digitalWrite(IN4, LOW);
+}
+
+// === Read Distance from Ultrasonic Sensor ===
+int readUltrasonic(int trigPin, int echoPin) {
+  digitalWrite(trigPin, LOW); delayMicroseconds(2);
+  digitalWrite(trigPin, HIGH); delayMicroseconds(10);
+  digitalWrite(trigPin, LOW);
+
+  long duration = pulseIn(echoPin, HIGH, 20000); // Timeout 20 ms
+  int distance = duration * 0.034 / 2;
+  return distance;
+}
