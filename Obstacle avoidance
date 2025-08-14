@@ -1,0 +1,110 @@
+#include <Servo.h>
+
+#define trigPin 8
+#define echoPin 9
+#define servoPin 10
+
+// Motor pins
+#define LM1 2
+#define LM2 3
+#define RM1 4
+#define RM2 5
+
+Servo myServo;
+
+long duration;
+int distance;
+
+void setup() {
+  pinMode(trigPin, OUTPUT);
+  pinMode(echoPin, INPUT);
+  
+  pinMode(LM1, OUTPUT);
+  pinMode(LM2, OUTPUT);
+  pinMode(RM1, OUTPUT);
+  pinMode(RM2, OUTPUT);
+  
+  myServo.attach(servoPin);
+  myServo.write(90); // Center position
+  
+  Serial.begin(9600);
+}
+
+void loop() {
+  distance = getDistance();
+  Serial.print("Distance: ");
+  Serial.println(distance);
+  
+  if (distance > 20) {
+    forward();
+  } else {
+    stopBot();
+    int leftDist = lookLeft();
+    int rightDist = lookRight();
+    
+    if (leftDist > rightDist) {
+      turnLeft();
+      delay(500);
+    } else {
+      turnRight();
+      delay(500);
+    }
+  }
+}
+
+int getDistance() {
+  digitalWrite(trigPin, LOW);
+  delayMicroseconds(2);
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigPin, LOW);
+  
+  duration = pulseIn(echoPin, HIGH);
+  return duration * 0.034 / 2; // Convert to cm
+}
+
+int lookLeft() {
+  myServo.write(150); // Turn servo left
+  delay(500);
+  int dist = getDistance();
+  myServo.write(90); // Return to center
+  delay(500);
+  return dist;
+}
+
+int lookRight() {
+  myServo.write(30); // Turn servo right
+  delay(500);
+  int dist = getDistance();
+  myServo.write(90); // Return to center
+  delay(500);
+  return dist;
+}
+
+void forward() {
+  digitalWrite(LM1, HIGH);
+  digitalWrite(LM2, LOW);
+  digitalWrite(RM1, HIGH);
+  digitalWrite(RM2, LOW);
+}
+
+void turnLeft() {
+  digitalWrite(LM1, LOW);
+  digitalWrite(LM2, HIGH);
+  digitalWrite(RM1, HIGH);
+  digitalWrite(RM2, LOW);
+}
+
+void turnRight() {
+  digitalWrite(LM1, HIGH);
+  digitalWrite(LM2, LOW);
+  digitalWrite(RM1, LOW);
+  digitalWrite(RM2, HIGH);
+}
+
+void stopBot() {
+  digitalWrite(LM1, LOW);
+  digitalWrite(LM2, LOW);
+  digitalWrite(RM1, LOW);
+  digitalWrite(RM2, LOW);
+}
