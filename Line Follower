@@ -1,0 +1,67 @@
+// Pin definitions
+#define LS A0  // Left IR sensor
+#define RS A1  // Right IR sensor
+
+#define LM1 2  // Left Motor IN1
+#define LM2 3  // Left Motor IN2
+#define RM1 4  // Right Motor IN3
+#define RM2 5  // Right Motor IN4
+
+void setup() {
+  pinMode(LS, INPUT);
+  pinMode(RS, INPUT);
+  pinMode(LM1, OUTPUT);
+  pinMode(LM2, OUTPUT);
+  pinMode(RM1, OUTPUT);
+  pinMode(RM2, OUTPUT);
+}
+
+void loop() {
+  int leftSensor = digitalRead(LS);
+  int rightSensor = digitalRead(RS);
+
+  // Both sensors on white surface → Move forward
+  if (leftSensor == 0 && rightSensor == 0) {
+    forward();
+  }
+  // Left sensor on black line → Turn left
+  else if (leftSensor == 1 && rightSensor == 0) {
+    left();
+  }
+  // Right sensor on black line → Turn right
+  else if (leftSensor == 0 && rightSensor == 1) {
+    right();
+  }
+  // Both sensors on black line → Stop
+  else if (leftSensor == 1 && rightSensor == 1) {
+    stopBot();
+  }
+}
+
+void forward() {
+  digitalWrite(LM1, HIGH);
+  digitalWrite(LM2, LOW);
+  digitalWrite(RM1, HIGH);
+  digitalWrite(RM2, LOW);
+}
+
+void left() {
+  digitalWrite(LM1, LOW);
+  digitalWrite(LM2, HIGH);
+  digitalWrite(RM1, HIGH);
+  digitalWrite(RM2, LOW);
+}
+
+void right() {
+  digitalWrite(LM1, HIGH);
+  digitalWrite(LM2, LOW);
+  digitalWrite(RM1, LOW);
+  digitalWrite(RM2, HIGH);
+}
+
+void stopBot() {
+  digitalWrite(LM1, LOW);
+  digitalWrite(LM2, LOW);
+  digitalWrite(RM1, LOW);
+  digitalWrite(RM2, LOW);
+}
